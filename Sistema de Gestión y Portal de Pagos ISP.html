@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Clientes y Portal de Pagos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: 'var(--color-primary-50, #eff6ff)',
+                            100: 'var(--color-primary-100, #dbeafe)',
+                            200: 'var(--color-primary-200, #bfdbfe)',
+                            300: 'var(--color-primary-300, #93c5fd)',
+                            400: 'var(--color-primary-400, #60a5fa)',
+                            500: 'var(--color-primary-500, #3b82f6)',
+                            600: 'var(--color-primary-600, #2563eb)',
+                            700: 'var(--color-primary-700, #1d4ed8)',
+                            800: 'var(--color-primary-800, #1e40af)',
+                            900: 'var(--color-primary-900, #1e3a8a)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --color-primary-50: #eff6ff;
+            --color-primary-100: #dbeafe;
+            --color-primary-200: #bfdbfe;
+            --color-primary-300: #93c5fd;
+            --color-primary-400: #60a5fa;
+            --color-primary-500: #3b82f6;
+            --color-primary-600: #2563eb;
+            --color-primary-700: #1d4ed8;
+            --color-primary-800: #1e40af;
+            --color-primary-900: #1e3a8a;
+        }
+        /* Custom scrollbar for sleek UI */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        
+        /* Smooth transitions */
+        .tab-content { animation: fadeIn 0.25s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- ==================== GLOBAL TOAST / NOTIFICATION CONTAINER ==================== -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- ==================== GLOBAL CONFIRMATION MODAL ==================== -->
+    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 transform transition-all">
+            <div class="flex items-center gap-3 mb-4">
+                <div id="confirm-icon-bg" class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                    <i id="confirm-icon" class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 id="confirm-title" class="text-lg font-bold text-slate-900 dark:text-white">Confirmar Acción</h3>
+            </div>
+            <p id="confirm-message" class="text-sm text-slate-600 dark:text-slate-300 mb-6">¿Estás seguro de realizar esta acción?</p>
+            <div class="flex justify-end gap-3">
+                <button id="confirm-cancel-btn" class="px-4 py-2.5 rounded-xl text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 transition">Cancelar</button>
+                <button id="confirm-ok-btn" class="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white shadow-sm transition">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TOP NAVIGATION BAR ==================== -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+            <!-- Brand / Logo -->
+            <div class="flex items-center gap-3 overflow-hidden">
+                <img id="nav-logo" src="https://placehold.co/100x100/2563eb/ffffff?text=ISP" onerror="this.src='https://placehold.co/100x100/2563eb/ffffff?text=ISP'" alt="Logo Empresa" class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-600 shrink-0">
+                <div class="truncate">
+                    <h1 id="nav-company-name" class="font-bold text-base sm:text-lg text-slate-900 dark:text-white truncate">ConectaNet Telecom</h1>
+                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <span class="inline-flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
+                            <i class="fa-solid fa-dollar-sign"></i> Tasa: <span id="nav-exchange-rate">914.50</span> Bs
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Switcher & Actions -->
+            <div class="flex items-center gap-2 shrink-0">
+                <!-- Toggle Dark Mode -->
+                <button onclick="toggleDarkMode()" title="Cambiar tema" class="p-2.5 rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+
+                <!-- Return to Admin Panel Button (Shown when previewing Portal while logged in) -->
+                <button id="btn-back-admin" onclick="switchMainView('admin')" class="hidden px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-primary-600 hover:bg-primary-700 text-white transition items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Volver al Panel</span>
+                </button>
+
+                <!-- Admin Access Button (Shown on Portal if not logged in) -->
+                <button id="btn-view-admin" onclick="switchMainView('admin')" class="hidden px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white transition items-center gap-1.5">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Panel Admin</span>
+                </button>
+
+                <!-- Logout Button (Visible only when logged in) -->
+                <button id="btn-logout" onclick="handleLogout()" class="hidden px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 dark:text-rose-400 border border-rose-200 dark:border-rose-800 transition items-center gap-1.5" title="Cerrar Sesión">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span class="hidden md:inline">Salir</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== VIEW 1: CLIENT PAYMENT PORTAL (PUBLIC / ENABLED FROM PANEL) ==================== -->
+    <main id="view-portal" class="hidden flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-10">
+        <!-- Hero Banner -->
+        <div class="bg-gradient-to-br from-primary-600 to-primary-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+            <div class="relative z-10 max-w-xl">
+                <span class="inline-block px-3 py-1 rounded-full bg-white/20 text-xs font-semibold tracking-wide uppercase mb-3 backdrop-blur-sm">Autogestión de Clientes</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold mb-2">Consulta tu estado de cuenta y reporta tu pago</h2>
+                <p class="text-primary-100 text-sm sm:text-base mb-6">Ingresa tu número de cédula para verificar tu plan, fecha de corte y realizar tus pagos de forma rápida y segura.</p>
+                
+                <!-- Search Form -->
+                <form onsubmit="handleClientSearch(event)" class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
+                        <input type="text" id="portal-search-cedula" required placeholder="Ej: V-12345678 o 12345678" class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-4 focus:ring-white/30 shadow-md">
+                    </div>
+                    <button type="submit" class="px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-lg transition flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-search"></i>
+                        <span>Consultar</span>
+                    </button>
+                </form>
+                <p class="text-xs text-primary-200 mt-3"><i class="fa-solid fa-circle-info mr-1"></i> Cédulas de prueba: <button type="button" onclick="quickSearch('25111222')" class="underline font-semibold hover:text-white">25111222 (Vencido)</button> • <button type="button" onclick="quickSearch('18444555')" class="underline font-semibold hover:text-white">18444555 (Activo)</button></p>
+            </div>
+            <!-- Decorative circle -->
+            <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        </div>
+
+        <!-- Search Result Container -->
+        <div id="portal-result-container" class="hidden space-y-6 tab-content">
+            <!-- Client Status Card -->
+            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-700">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Titular del Servicio</p>
+                        <h3 id="res-client-name" class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">--</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                            <span id="res-client-cedula">C.I: --</span> • <span id="res-client-phone">Tel: --</span>
+                        </p>
+                    </div>
+                    <div id="res-status-badge" class="self-start sm:self-center">
+                        <!-- Dynamic Status Badge -->
+                    </div>
+                </div>
+
+                <!-- Plan & Billing Details Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 py-6 border-b border-slate-100 dark:border-slate-700">
+                    <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-2xl">
+                        <span class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Plan Contratado</span>
+                        <span id="res-plan-name" class="font-bold text-slate-900 dark:text-white text-base">--</span>
+                        <span id="res-plan-speed" class="text-xs text-primary-600 dark:text-primary-400 font-medium block mt-0.5">--</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-2xl">
+                        <span class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Próximo Vencimiento / Corte</span>
+                        <span id="res-due-date" class="font-bold text-slate-900 dark:text-white text-base">--</span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">Ciclo mensual (25 al 30)</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-2xl">
+                        <span class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Tasa BCV / Día</span>
+                        <span id="res-rate-display" class="font-bold text-slate-900 dark:text-white text-base">-- Bs/$</span>
+                        <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium block mt-0.5">Actualizada hoy</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Status Message & Payment Action -->
+                <div id="res-action-area" class="pt-6">
+                    <!-- Populated dynamically based on status (Activo, Vencido, Pendiente, Pausado, Cancelado) -->
+                </div>
+            </div>
+
+            <!-- Payment Reporting Form Section (Shown when clicking "Reportar Pago") -->
+            <div id="portal-payment-form-card" class="hidden bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 shadow-lg border-2 border-primary-500/30 tab-content">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h4 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Reportar Pago de Mensualidad</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Realiza la transferencia o pago móvil y adjunta los datos abajo.</p>
+                    </div>
+                    <button type="button" onclick="togglePaymentForm(false)" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Amount Summary Box -->
+                <div class="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-semibold uppercase text-primary-700 dark:text-primary-300">Total a Pagar</span>
+                        <div class="flex items-baseline gap-3 mt-1">
+                            <span id="pay-amount-usd" class="text-2xl font-extrabold text-slate-900 dark:text-white">$0.00</span>
+                            <span class="text-slate-400">•</span>
+                            <span id="pay-amount-bs" class="text-xl font-bold text-primary-600 dark:text-primary-400">0.00 Bs</span>
+                        </div>
+                    </div>
+                    <button type="button" id="btn-copy-amount-bs" onclick="copyTextValue(currentPaymentBsRaw, 'Monto en Bs copiado')" class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 text-primary-700 dark:text-primary-300 font-semibold text-xs border border-primary-200 dark:border-primary-700 shadow-sm flex items-center gap-2 self-start sm:self-center transition">
+                        <i class="fa-regular fa-copy"></i> Copiar Monto Bs
+                    </button>
+                </div>
+
+                <!-- Bank Accounts List with Copy Buttons -->
+                <div class="mb-6">
+                    <h5 class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-building-columns text-primary-600"></i> Cuentas Bancarias Disponibles
+                    </h5>
+                    <div id="portal-bank-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- Bank cards rendered here -->
+                    </div>
+                </div>
+
+                <!-- Report Form -->
+                <form onsubmit="handlePaymentSubmit(event)" class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Banco / Método Utilizado *</label>
+                            <select id="pay-bank-select" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                <!-- Options populated dynamically -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Número de Referencia * (Único)</label>
+                            <input type="text" id="pay-reference" required placeholder="Ej: 00458921" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Fecha del Pago *</label>
+                            <input type="date" id="pay-date" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Comprobante / Capture de Pantalla *</label>
+                            <input type="file" id="pay-receipt-file" accept="image/*,.pdf" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
+                        </div>
+                    </div>
+
+                    <div id="pay-error-box" class="hidden p-4 rounded-xl bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-sm flex items-start gap-3">
+                        <i class="fa-solid fa-circle-exclamation mt-0.5 text-base"></i>
+                        <span id="pay-error-text">Error al procesar el pago.</span>
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" onclick="togglePaymentForm(false)" class="px-5 py-3 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 transition">Cancelar</button>
+                        <button type="submit" class="px-6 py-3 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> Enviar Reporte de Pago
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Customer Support WhatsApp Card -->
+        <div class="mt-10 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4 text-center sm:text-left">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl shrink-0">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 dark:text-white">¿Necesitas ayuda o soporte técnico?</h4>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Comunícate directamente con nuestro equipo de atención al cliente.</p>
+                </div>
+            </div>
+            <div id="portal-whatsapp-buttons" class="flex flex-wrap justify-center gap-2">
+                <!-- WhatsApp support buttons populated dynamically -->
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== VIEW 2: ADMIN LOGIN SCREEN ==================== -->
+    <section id="view-login" class="hidden flex-1 flex items-center justify-center px-4 py-12">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-xl border border-slate-200 dark:border-slate-700 tab-content">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 rounded-2xl bg-primary-600 text-white flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg shadow-primary-500/30">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Acceso Administrativo</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ingresa tus credenciales para gestionar el sistema</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Usuario</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="login-username" required placeholder="admin" class="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Contraseña</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400"><i class="fa-solid fa-key"></i></span>
+                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                    <span>Demo: <strong class="text-slate-700 dark:text-slate-200">admin</strong> / <strong class="text-slate-700 dark:text-slate-200">admin123</strong></span>
+                    <button type="button" onclick="fillDemoLogin()" class="text-primary-600 dark:text-primary-400 font-semibold hover:underline">Autocompletar</button>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-lg shadow-primary-500/30 transition">
+                    Iniciar Sesión
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ==================== VIEW 3: ADMIN DASHBOARD ==================== -->
+    <div id="view-admin" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- Quick Exchange Rate & Portal Control Bar -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 dark:border-slate-700 mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-money-bill-trend-up"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400 block">Tasa del Dólar del Día</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">1 $ = <span id="admin-current-rate">914.50</span> Bs</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Quick Rate Update Form -->
+                <form onsubmit="handleQuickRateUpdate(event)" class="flex items-center gap-2">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Bs</span>
+                        <input type="number" step="0.01" min="0.01" id="quick-rate-input" required placeholder="914.50" class="w-32 sm:w-36 pl-8 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition whitespace-nowrap">
+                        Actualizar Tasa
+                    </button>
+                </form>
+
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+
+                <!-- Enable / Open Client Portal Actions -->
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="openPortalFromAdmin()" class="px-3.5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-up-right-from-square"></i> Habilitar / Abrir Portal
+                    </button>
+                    <button type="button" onclick="copyPortalLink()" title="Copiar link del portal para clientes" class="p-2 rounded-xl bg-primary-50 hover:bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300 border border-primary-200 dark:border-primary-800 transition">
+                        <i class="fa-solid fa-link"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Navigation Tabs -->
+        <div class="flex overflow-x-auto gap-2 pb-2 mb-6 no-scrollbar">
+            <button onclick="switchAdminTab('dashboard')" id="tab-btn-dashboard" class="admin-tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap flex items-center gap-2 bg-primary-600 text-white shadow-sm">
+                <i class="fa-solid fa-chart-pie"></i> Resumen e Ingresos
+            </button>
+            <button onclick="switchAdminTab('clients')" id="tab-btn-clients" class="admin-tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50">
+                <i class="fa-solid fa-users"></i> Clientes y Facturación
+            </button>
+            <button onclick="switchAdminTab('payments')" id="tab-btn-payments" class="admin-tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 relative">
+                <i class="fa-solid fa-receipt"></i> Validar Pagos
+                <span id="pending-payments-badge" class="hidden px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500 text-white">0</span>
+            </button>
+            <button onclick="switchAdminTab('plans')" id="tab-btn-plans" class="admin-tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50">
+                <i class="fa-solid fa-wifi"></i> Planes
+            </button>
+            <button onclick="switchAdminTab('settings')" id="tab-btn-settings" class="admin-tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50">
+                <i class="fa-solid fa-gear"></i> Ajustes y Bancos
+            </button>
+        </div>
+
+        <!-- ==================== TAB 1: DASHBOARD & REVENUE ==================== -->
+        <div id="admin-tab-dashboard" class="admin-tab-panel space-y-6 tab-content">
+            <!-- Revenue Stats (Day, Week, Month, Year) -->
+            <div>
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-sack-dollar text-emerald-500"></i> Ingresos Confirmados
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs font-semibold uppercase text-slate-400">Ingresos Hoy (Día)</span>
+                        <div id="rev-day-usd" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">$0.00</div>
+                        <div id="rev-day-bs" class="text-xs font-medium text-emerald-600 dark:text-emerald-400 mt-1">0.00 Bs</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs font-semibold uppercase text-slate-400">Esta Semana</span>
+                        <div id="rev-week-usd" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">$0.00</div>
+                        <div id="rev-week-bs" class="text-xs font-medium text-emerald-600 dark:text-emerald-400 mt-1">0.00 Bs</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs font-semibold uppercase text-slate-400">Este Mes</span>
+                        <div id="rev-month-usd" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">$0.00</div>
+                        <div id="rev-month-bs" class="text-xs font-medium text-emerald-600 dark:text-emerald-400 mt-1">0.00 Bs</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="text-xs font-semibold uppercase text-slate-400">Este Año</span>
+                        <div id="rev-year-usd" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">$0.00</div>
+                        <div id="rev-year-bs" class="text-xs font-medium text-emerald-600 dark:text-emerald-400 mt-1">0.00 Bs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Status Overview -->
+            <div>
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-users-viewfinder text-primary-500"></i> Estado de la Cartera de Clientes
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 rounded-2xl">
+                        <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400 block">Activos</span>
+                        <span id="stat-active" class="text-2xl font-extrabold text-emerald-800 dark:text-emerald-300">0</span>
+                    </div>
+                    <div class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 p-4 rounded-2xl">
+                        <span class="text-xs font-bold text-rose-700 dark:text-rose-400 block">Vencidos</span>
+                        <span id="stat-expired" class="text-2xl font-extrabold text-rose-800 dark:text-rose-300">0</span>
+                    </div>
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-2xl">
+                        <span class="text-xs font-bold text-amber-700 dark:text-amber-400 block">Pendiente Pago</span>
+                        <span id="stat-pending" class="text-2xl font-extrabold text-amber-800 dark:text-amber-300">0</span>
+                    </div>
+                    <div class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl">
+                        <span class="text-xs font-bold text-slate-600 dark:text-slate-400 block">Pausados</span>
+                        <span id="stat-paused" class="text-2xl font-extrabold text-slate-800 dark:text-slate-200">0</span>
+                    </div>
+                    <div class="bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 p-4 rounded-2xl col-span-2 sm:col-span-1">
+                        <span class="text-xs font-bold text-zinc-600 dark:text-zinc-400 block">Cancelados</span>
+                        <span id="stat-cancelled" class="text-2xl font-extrabold text-zinc-800 dark:text-zinc-200">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Confirmed Transactions -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+                <h4 class="font-bold text-slate-900 dark:text-white mb-4">Últimos Ingresos Confirmados</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 dark:border-slate-700 text-xs font-semibold uppercase text-slate-400">
+                                <th class="py-3 px-3">Fecha</th>
+                                <th class="py-3 px-3">Cliente</th>
+                                <th class="py-3 px-3">Referencia</th>
+                                <th class="py-3 px-3">Banco</th>
+                                <th class="py-3 px-3 text-right">Monto USD</th>
+                                <th class="py-3 px-3 text-right">Monto Bs</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-income-table" class="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 2: CLIENTS & BILLING ==================== -->
+        <div id="admin-tab-clients" class="hidden admin-tab-panel space-y-5 tab-content">
+            <!-- Top Toolbar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <div class="flex flex-1 flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="client-filter-search" oninput="renderClientsTable()" placeholder="Buscar por nombre, cédula o teléfono..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    </div>
+                    <select id="client-filter-status" onchange="renderClientsTable()" class="px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="ALL">Todos los Estatus</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Vencido">Vencido</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Pausado">Pausado</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="generateMonthlyCycle()" title="Marcar facturas vencidas según fecha" class="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs sm:text-sm font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-check"></i> Verificar Cortes
+                    </button>
+                    <button onclick="openClientModal()" class="px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-plus"></i> Nuevo Cliente
+                    </button>
+                </div>
+            </div>
+
+            <!-- Clients Table -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
+                                <th class="py-3.5 px-4">Cliente / Cédula</th>
+                                <th class="py-3.5 px-4">Contacto / Dirección</th>
+                                <th class="py-3.5 px-4">Plan / Monto</th>
+                                <th class="py-3.5 px-4">Vencimiento</th>
+                                <th class="py-3.5 px-4">Estatus</th>
+                                <th class="py-3.5 px-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body" class="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 3: PAYMENT VALIDATION ==================== -->
+        <div id="admin-tab-payments" class="hidden admin-tab-panel space-y-5 tab-content">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Validación de Pagos Reportados</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Verifica las referencias y comprobantes. Al confirmar, el cliente pasa automáticamente a estado <strong>Activo</strong>.</p>
+                    </div>
+                </div>
+
+                <div id="payments-validation-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Payment report cards populated via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 4: PLANS MANAGEMENT ==================== -->
+        <div id="admin-tab-plans" class="hidden admin-tab-panel space-y-5 tab-content">
+            <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Planes de Servicio</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Agrega o edita los planes disponibles para tus clientes.</p>
+                </div>
+                <button onclick="openPlanModal()" class="px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Agregar Plan
+                </button>
+            </div>
+
+            <div id="plans-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Plan cards populated via JS -->
+            </div>
+        </div>
+
+        <!-- ==================== TAB 5: SETTINGS & BANKS ==================== -->
+        <div id="admin-tab-settings" class="hidden admin-tab-panel space-y-6 tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- General Company & Security Settings -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-building text-primary-600"></i> Datos de la Empresa y Seguridad
+                    </h3>
+                    <form onsubmit="handleSaveSettings(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre de la Empresa</label>
+                            <input type="text" id="set-company-name" required class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">URL del Logo (o subir imagen)</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="set-logo-url" placeholder="https://..." class="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                                <label class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-xs font-semibold cursor-pointer flex items-center gap-1 shrink-0">
+                                    <i class="fa-solid fa-upload"></i> Subir
+                                    <input type="file" accept="image/*" onchange="handleLogoFileUpload(event)" class="hidden">
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tasa del Dólar (Bs por 1$)</label>
+                            <input type="number" step="0.01" id="set-exchange-rate" required class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Teléfono Único de Atención al Cliente (WhatsApp)</label>
+                            <input type="text" id="set-whatsapp-phone" placeholder="Ej: 584121234567" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                            <span class="text-[11px] text-slate-400">Incluye código de país sin el signo + (ej: 584121234567)</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Color Principal del Sistema</label>
+                            <div class="flex flex-wrap items-center gap-2.5">
+                                <button type="button" onclick="selectThemePreset('#2563eb')" class="w-8 h-8 rounded-full bg-[#2563eb] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition" title="Azul"></button>
+                                <button type="button" onclick="selectThemePreset('#059669')" class="w-8 h-8 rounded-full bg-[#059669] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition" title="Esmeralda"></button>
+                                <button type="button" onclick="selectThemePreset('#7c3aed')" class="w-8 h-8 rounded-full bg-[#7c3aed] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition" title="Violeta"></button>
+                                <button type="button" onclick="selectThemePreset('#e11d48')" class="w-8 h-8 rounded-full bg-[#e11d48] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition" title="Carmesí"></button>
+                                <button type="button" onclick="selectThemePreset('#ea580c')" class="w-8 h-8 rounded-full bg-[#ea580c] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition" title="Naranja"></button>
+                                <button type="button" onclick="selectThemePreset('#0891b2')" class="w-8 h-8 rounded-full bg-[#0891b2] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition" title="Cian"></button>
+                                <div class="flex items-center gap-1.5 ml-1">
+                                    <input type="color" id="set-primary-color" value="#2563eb" oninput="applyThemeColor(this.value)" class="w-9 h-9 rounded-lg cursor-pointer border-0 bg-transparent">
+                                    <span class="text-xs text-slate-500">Personalizado</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Usuario Administrador</label>
+                                <input type="text" id="set-admin-user" required class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Contraseña Administrador</label>
+                                <input type="text" id="set-admin-pass" required class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-sm transition">
+                            Guardar Todos los Ajustes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Bank Accounts Configuration -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-building-columns text-emerald-600"></i> Datos Bancarios
+                        </h3>
+                        <button onclick="openBankModal()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-plus"></i> Agregar Cuenta
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Estas cuentas aparecerán en el portal de pagos para que los clientes copien los datos.</p>
+                    
+                    <div id="admin-banks-list" class="space-y-3">
+                        <!-- Bank items populated via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODALS FOR ADMIN CRUD ==================== -->
+
+    <!-- Client Modal (Create / Edit) -->
+    <div id="client-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 my-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700 mb-5">
+                <h3 id="client-modal-title" class="text-lg font-bold text-slate-900 dark:text-white">Agregar Nuevo Cliente</h3>
+                <button onclick="closeModal('client-modal')" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="handleSaveClient(event)" class="space-y-4">
+                <input type="hidden" id="client-id">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre *</label>
+                        <input type="text" id="client-first-name" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Apellido *</label>
+                        <input type="text" id="client-last-name" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cédula / RIF *</label>
+                        <input type="text" id="client-cedula" required placeholder="Ej: 25111222" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Teléfono (WhatsApp) *</label>
+                        <input type="text" id="client-phone" required placeholder="Ej: 584121234567" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Correo Electrónico</label>
+                    <input type="email" id="client-email" placeholder="cliente@correo.com" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Dirección *</label>
+                    <input type="text" id="client-address" required placeholder="Sector, Calle, Casa..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Plan *</label>
+                        <select id="client-plan" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Estatus Actual *</label>
+                        <select id="client-status" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                            <option value="Activo">Activo</option>
+                            <option value="Vencido">Vencido</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Pausado">Pausado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Vencimiento Factura *</label>
+                        <input type="date" id="client-due-date" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                        <span class="text-[10px] text-slate-400">Ciclo habitual: 25 al 30</span>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeModal('client-modal')" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-primary-600 hover:bg-primary-700 text-white shadow-sm">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Plan Modal (Create / Edit) -->
+    <div id="plan-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700 mb-5">
+                <h3 id="plan-modal-title" class="text-lg font-bold text-slate-900 dark:text-white">Configurar Plan</h3>
+                <button onclick="closeModal('plan-modal')" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="handleSavePlan(event)" class="space-y-4">
+                <input type="hidden" id="plan-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre del Plan *</label>
+                    <input type="text" id="plan-name" required placeholder="Ej: Plan Fibra Hogar 100 Mbps" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Velocidad / Descripción *</label>
+                    <input type="text" id="plan-desc" required placeholder="Ej: 100 Mbps Simétricos + Soporte 24/7" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Precio Mensual (USD $) *</label>
+                    <input type="number" step="0.01" min="0.01" id="plan-price" required placeholder="25.00" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-bold">
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeModal('plan-modal')" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-primary-600 hover:bg-primary-700 text-white shadow-sm">Guardar Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bank Modal (Create / Edit) -->
+    <div id="bank-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700 mb-5">
+                <h3 id="bank-modal-title" class="text-lg font-bold text-slate-900 dark:text-white">Cuenta Bancaria / Pago Móvil</h3>
+                <button onclick="closeModal('bank-modal')" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="handleSaveBank(event)" class="space-y-4">
+                <input type="hidden" id="bank-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Banco / Plataforma *</label>
+                    <input type="text" id="bank-name" required placeholder="Ej: Banesco (Pago Móvil) / Zelle" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Número de Cuenta / Teléfono *</label>
+                    <input type="text" id="bank-account" required placeholder="Ej: 0412-1234567 o 0134-0000-..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-mono">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Titular *</label>
+                        <input type="text" id="bank-holder" required placeholder="ConectaNet C.A." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">RIF / Cédula *</label>
+                        <input type="text" id="bank-rif" required placeholder="J-50123456-0" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeModal('bank-modal')" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">Guardar Cuenta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receipt Preview Modal -->
+    <div id="receipt-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700 mb-4">
+                <h3 class="font-bold text-slate-900 dark:text-white">Comprobante de Pago</h3>
+                <button onclick="closeModal('receipt-modal')" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="bg-slate-100 dark:bg-slate-900 rounded-2xl p-2 flex items-center justify-center max-h-[65vh] overflow-auto">
+                <img id="receipt-preview-img" src="" alt="Comprobante" class="max-w-full h-auto rounded-xl">
+            </div>
+            <div class="mt-4 flex justify-between items-center text-xs text-slate-500">
+                <span id="receipt-preview-info">Ref: --</span>
+                <button onclick="closeModal('receipt-modal')" class="px-4 py-2 rounded-xl bg-slate-800 text-white font-semibold">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== APPLICATION LOGIC ==================== -->
+    <script>
+        // -------------------- INITIAL IN-MEMORY STATE --------------------
+        const todayStr = new Date().toISOString().split('T')[0];
+        
+        // Calculate default cycle date (between 25th and 30th of current month)
+        function getDefaultCycleDate(offsetMonths = 0) {
+            const d = new Date();
+            d.setMonth(d.getMonth() + offsetMonths);
+            d.setDate(28);
+            return d.toISOString().split('T')[0];
+        }
+
+        let appState = {
+            isAuthenticated: false,
+            portalEnabled: true,
+            settings: {
+                companyName: 'ConectaNet Telecom',
+                logoUrl: 'https://placehold.co/100x100/2563eb/ffffff?text=CN',
+                exchangeRate: 914.50,
+                whatsappPhone: '584121234567',
+                primaryColor: '#2563eb',
+                adminUser: 'admin',
+                adminPass: 'admin123'
+            },
+            plans: [
+                { id: 'plan-1', name: 'Plan Básico 50 Mbps', desc: '50 Mbps Fibra Óptica Residencial', price: 20.00 },
+                { id: 'plan-2', name: 'Plan Hogar Plus 100 Mbps', desc: '100 Mbps Simétricos + Router Dual Band', price: 30.00 },
+                { id: 'plan-3', name: 'Plan Ultra Pro 300 Mbps', desc: '300 Mbps Alta Velocidad + IP Fija', price: 45.00 }
+            ],
+            banks: [
+                { id: 'bank-1', name: 'Banesco (Pago Móvil)', account: '0412-1234567', holder: 'ConectaNet Telecom C.A.', rif: 'J-50123456-0' },
+                { id: 'bank-2', name: 'Banco de Venezuela (Transferencia)', account: '0102-0555-22-0000123456', holder: 'ConectaNet Telecom C.A.', rif: 'J-50123456-0' }
+            ],
+            clients: [
+                {
+                    id: 'cli-1',
+                    firstName: 'Carlos',
+                    lastName: 'Mendoza',
+                    cedula: '25111222',
+                    phone: '584125550101',
+                    email: 'carlos.mendoza@email.com',
+                    address: 'Av. Bolívar, Res. El Parque, Apto 4B',
+                    planId: 'plan-2',
+                    status: 'Vencido',
+                    dueDate: getDefaultCycleDate(-1) // Expired last month 28th
+                },
+                {
+                    id: 'cli-2',
+                    firstName: 'María',
+                    lastName: 'Fernández',
+                    cedula: '18444555',
+                    phone: '584145550202',
+                    email: 'maria.f@email.com',
+                    address: 'Urb. Los Jardines, Calle 3, Casa 12',
+                    planId: 'plan-1',
+                    status: 'Activo',
+                    dueDate: getDefaultCycleDate(0) // Active until 28th of current month
+                },
+                {
+                    id: 'cli-3',
+                    firstName: 'José',
+                    lastName: 'Rodríguez',
+                    cedula: '15999888',
+                    phone: '584245550303',
+                    email: 'jrodriguez@email.com',
+                    address: 'Sector Centro, Edif. Plaza, Piso 2',
+                    planId: 'plan-3',
+                    status: 'Pendiente',
+                    dueDate: getDefaultCycleDate(-1)
+                },
+                {
+                    id: 'cli-4',
+                    firstName: 'Ana',
+                    lastName: 'Gómez',
+                    cedula: '20777666',
+                    phone: '584165550404',
+                    email: 'anagomez@email.com',
+                    address: 'Urb. La Floresta, Calle B',
+                    planId: 'plan-1',
+                    status: 'Pausado',
+                    dueDate: getDefaultCycleDate(0)
+                }
+            ],
+            payments: [
+                {
+                    id: 'pay-101',
+                    clientId: 'cli-3',
+                    clientName: 'José Rodríguez',
+                    clientCedula: '15999888',
+                    bankName: 'Banesco (Pago Móvil)',
+                    reference: '98765432',
+                    amountUsd: 45.00,
+                    amountBs: 45.00 * 914.50,
+                    date: todayStr,
+                    receiptDataUrl: 'https://placehold.co/400x600/e2e8f0/1e293b?text=Comprobante+Ref+98765432',
+                    receiptHash: 'demo-hash-98765432',
+                    status: 'Pendiente' // Pendiente | Confirmado | Rechazado
+                },
+                {
+                    id: 'pay-100',
+                    clientId: 'cli-2',
+                    clientName: 'María Fernández',
+                    clientCedula: '18444555',
+                    bankName: 'Banco de Venezuela (Transferencia)',
+                    reference: '11223344',
+                    amountUsd: 20.00,
+                    amountBs: 20.00 * 914.50,
+                    date: todayStr,
+                    receiptDataUrl: 'https://placehold.co/400x600/dcfce7/166534?text=Comprobante+Aprobado+11223344',
+                    receiptHash: 'demo-hash-11223344',
+                    status: 'Confirmado'
+                }
+            ]
+        };
+
+        let activeSearchedClientId = null;
+        let currentPaymentBsRaw = '0.00';
+
+        // -------------------- INITIALIZATION --------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('pay-date').value = todayStr;
+            applyThemeColor(appState.settings.primaryColor);
+            updateGlobalBranding();
+            renderPortalSupportButtons();
+
+            // Check if opened directly via shared client portal link (?portal=1)
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('portal') === '1') {
+                switchMainView('portal');
+            } else {
+                // Default strictly to Admin Login / Panel
+                switchMainView('admin');
+            }
+        });
+
+        // -------------------- THEME COLOR CUSTOMIZATION --------------------
+        function hexToRgb(hex) {
+            const clean = hex.replace('#', '');
+            const bigint = parseInt(clean, 16);
+            return {
+                r: (bigint >> 16) & 255,
+                g: (bigint >> 8) & 255,
+                b: bigint & 255
+            };
+        }
+
+        function mixColor(rgb, target, weight) {
+            const r = Math.round(rgb.r * (1 - weight) + target * weight);
+            const g = Math.round(rgb.g * (1 - weight) + target * weight);
+            const b = Math.round(rgb.b * (1 - weight) + target * weight);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function applyThemeColor(hex) {
+            if (!hex) return;
+            const rgb = hexToRgb(hex);
+            const root = document.documentElement.style;
+            root.setProperty('--color-primary-50', mixColor(rgb, 255, 0.92));
+            root.setProperty('--color-primary-100', mixColor(rgb, 255, 0.82));
+            root.setProperty('--color-primary-200', mixColor(rgb, 255, 0.65));
+            root.setProperty('--color-primary-300', mixColor(rgb, 255, 0.45));
+            root.setProperty('--color-primary-400', mixColor(rgb, 255, 0.22));
+            root.setProperty('--color-primary-500', mixColor(rgb, 255, 0.08));
+            root.setProperty('--color-primary-600', hex);
+            root.setProperty('--color-primary-700', mixColor(rgb, 0, 0.15));
+            root.setProperty('--color-primary-800', mixColor(rgb, 0, 0.30));
+            root.setProperty('--color-primary-900', mixColor(rgb, 0, 0.45));
+        }
+
+        function selectThemePreset(hex) {
+            document.getElementById('set-primary-color').value = hex;
+            applyThemeColor(hex);
+        }
+
+        function getPortalShareUrl() {
+            const baseUrl = window.location.href.split('?')[0].split('#')[0];
+            return `${baseUrl}?portal=1`;
+        }
+
+        function openPortalFromAdmin() {
+            appState.portalEnabled = true;
+            showToast('Portal de pagos habilitado y abierto', 'success');
+            switchMainView('portal');
+        }
+
+        function copyPortalLink() {
+            const url = getPortalShareUrl();
+            copyTextValue(url, 'Enlace del Portal de Pagos copiado al portapapeles');
+        }
+
+        // -------------------- UI UTILITIES (TOAST, MODAL, CLIPBOARD, THEME) --------------------
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const styles = {
+                success: 'bg-emerald-600 text-white border-emerald-500',
+                error: 'bg-rose-600 text-white border-rose-500',
+                info: 'bg-slate-800 text-white border-slate-700',
+                warning: 'bg-amber-500 text-white border-amber-400'
+            };
+            const icons = {
+                success: 'fa-circle-check',
+                error: 'fa-circle-exclamation',
+                info: 'fa-circle-info',
+                warning: 'fa-triangle-exclamation'
+            };
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3.5 rounded-2xl shadow-xl border text-sm font-medium transform transition-all duration-300 translate-y-2 opacity-0 ${styles[type] || styles.info}`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-base"></i><span class="flex-1">${message}</span>`;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function showConfirmModal(title, message, onConfirm, isDanger = false) {
+            const modal = document.getElementById('confirm-modal');
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            
+            const okBtn = document.getElementById('confirm-ok-btn');
+            const iconBg = document.getElementById('confirm-icon-bg');
+            
+            if (isDanger) {
+                okBtn.className = 'px-4 py-2.5 rounded-xl text-sm font-medium bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition';
+                iconBg.className = 'w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0';
+            } else {
+                okBtn.className = 'px-4 py-2.5 rounded-xl text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white shadow-sm transition';
+                iconBg.className = 'w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0';
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            const cleanup = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                okBtn.onclick = null;
+            };
+
+            document.getElementById('confirm-cancel-btn').onclick = cleanup;
+            okBtn.onclick = () => {
+                cleanup();
+                onConfirm();
+            };
+        }
+
+        function copyTextValue(text, successMsg = 'Copiado al portapapeles') {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg, 'success');
+            } catch (err) {
+                showToast('No se pudo copiar automáticamente', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-moon';
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-sun text-amber-400';
+            }
+        }
+
+        function openModal(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+        }
+
+        function formatBs(amount) {
+            return new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' Bs';
+        }
+
+        function formatUsd(amount) {
+            return '$' + Number(amount).toFixed(2);
+        }
+
+        // -------------------- NAVIGATION & AUTHENTICATION --------------------
+        function switchMainView(view) {
+            document.getElementById('view-portal').classList.add('hidden');
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+
+            const btnBackAdmin = document.getElementById('btn-back-admin');
+            const btnViewAdmin = document.getElementById('btn-view-admin');
+            const btnLogout = document.getElementById('btn-logout');
+
+            btnBackAdmin.classList.add('hidden');
+            btnBackAdmin.classList.remove('flex');
+            btnViewAdmin.classList.add('hidden');
+            btnViewAdmin.classList.remove('flex');
+
+            if (appState.isAuthenticated) {
+                btnLogout.classList.remove('hidden');
+                btnLogout.classList.add('flex');
+            } else {
+                btnLogout.classList.add('hidden');
+                btnLogout.classList.remove('flex');
+            }
+
+            if (view === 'portal') {
+                document.getElementById('view-portal').classList.remove('hidden');
+                if (appState.isAuthenticated) {
+                    btnBackAdmin.classList.remove('hidden');
+                    btnBackAdmin.classList.add('flex');
+                } else {
+                    btnViewAdmin.classList.remove('hidden');
+                    btnViewAdmin.classList.add('flex');
+                }
+                if (activeSearchedClientId) {
+                    renderPortalClientResult(activeSearchedClientId);
+                }
+            } else if (view === 'admin') {
+                if (!appState.isAuthenticated) {
+                    document.getElementById('view-login').classList.remove('hidden');
+                } else {
+                    document.getElementById('view-admin').classList.remove('hidden');
+                    refreshAdminDashboard();
+                }
+            }
+        }
+
+        function fillDemoLogin() {
+            document.getElementById('login-username').value = appState.settings.adminUser;
+            document.getElementById('login-password').value = appState.settings.adminPass;
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value;
+
+            if (user === appState.settings.adminUser && pass === appState.settings.adminPass) {
+                appState.isAuthenticated = true;
+                document.getElementById('login-password').value = '';
+                showToast(`Bienvenido, ${user}`, 'success');
+                switchMainView('admin');
+            } else {
+                showToast('Usuario o contraseña incorrectos', 'error');
+            }
+        }
+
+        function handleLogout() {
+            showConfirmModal(
+                'Cerrar Sesión',
+                '¿Deseas salir del panel de administración?',
+                () => {
+                    appState.isAuthenticated = false;
+                    showToast('Sesión cerrada correctamente', 'info');
+                    switchMainView('admin');
+                }
+            );
+        }
+
+        function updateGlobalBranding() {
+            const { companyName, logoUrl, exchangeRate, primaryColor } = appState.settings;
+            document.getElementById('nav-company-name').textContent = companyName;
+            document.getElementById('nav-logo').src = logoUrl;
+            document.getElementById('nav-exchange-rate').textContent = Number(exchangeRate).toFixed(2);
+            document.getElementById('admin-current-rate').textContent = Number(exchangeRate).toFixed(2);
+            document.getElementById('quick-rate-input').value = Number(exchangeRate).toFixed(2);
+            applyThemeColor(primaryColor);
+        }
+
+        // -------------------- CLIENT PAYMENT PORTAL LOGIC --------------------
+        function renderPortalSupportButtons() {
+            const container = document.getElementById('portal-whatsapp-buttons');
+            container.innerHTML = '';
+            const cleanPhone = (appState.settings.whatsappPhone || '').replace(/\D/g, '');
+            if (!cleanPhone) return;
+            const msg = encodeURIComponent(`Hola ${appState.settings.companyName}, necesito ayuda con mi servicio.`);
+            const a = document.createElement('a');
+            a.href = `https://wa.me/${cleanPhone}?text=${msg}`;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.className = 'px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-2';
+            a.innerHTML = `<i class="fa-brands fa-whatsapp text-base"></i> Atención al Cliente`;
+            container.appendChild(a);
+        }
+
+        function quickSearch(cedula) {
+            document.getElementById('portal-search-cedula').value = cedula;
+            handleClientSearch(new Event('submit'));
+        }
+
+        function handleClientSearch(e) {
+            e.preventDefault();
+            const rawInput = document.getElementById('portal-search-cedula').value.trim();
+            const cleanQuery = rawInput.replace(/[^0-9a-zA-Z]/g, '').toLowerCase();
+
+            const client = appState.clients.find(c => 
+                c.cedula.replace(/[^0-9a-zA-Z]/g, '').toLowerCase() === cleanQuery
+            );
+
+            if (!client) {
+                activeSearchedClientId = null;
+                document.getElementById('portal-result-container').classList.add('hidden');
+                showToast('No se encontró ningún cliente registrado con esa cédula.', 'error');
+                return;
+            }
+
+            activeSearchedClientId = client.id;
+            togglePaymentForm(false);
+            renderPortalClientResult(client.id);
+        }
+
+        function renderPortalClientResult(clientId) {
+            const client = appState.clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            const plan = appState.plans.find(p => p.id === client.planId) || { name: 'Plan Personalizado', desc: 'Servicio Internet', price: 0 };
+            const rate = Number(appState.settings.exchangeRate);
+            const amountUsd = Number(plan.price);
+            const amountBs = amountUsd * rate;
+            currentPaymentBsRaw = amountBs.toFixed(2);
+
+            document.getElementById('res-client-name').textContent = `${client.firstName} ${client.lastName}`;
+            document.getElementById('res-client-cedula').textContent = `C.I: ${client.cedula}`;
+            document.getElementById('res-client-phone').textContent = `Tel: ${client.phone}`;
+            document.getElementById('res-plan-name').textContent = plan.name;
+            document.getElementById('res-plan-speed').textContent = `${plan.desc} (${formatUsd(amountUsd)}/mes)`;
+            document.getElementById('res-due-date').textContent = client.dueDate;
+            document.getElementById('res-rate-display').textContent = `${rate.toFixed(2)} Bs/$`;
+
+            // Status Badge & Action Area
+            const badgeEl = document.getElementById('res-status-badge');
+            const actionEl = document.getElementById('res-action-area');
+
+            const badgeMap = {
+                'Activo': '<span class="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"><i class="fa-solid fa-circle-check mr-1.5"></i>Activo</span>',
+                'Vencido': '<span class="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800"><i class="fa-solid fa-circle-exclamation mr-1.5"></i>Vencido</span>',
+                'Pendiente': '<span class="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800"><i class="fa-solid fa-clock mr-1.5"></i>Pago en Validación</span>',
+                'Pausado': '<span class="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300"><i class="fa-solid fa-pause mr-1.5"></i>Pausado</span>',
+                'Cancelado': '<span class="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"><i class="fa-solid fa-ban mr-1.5"></i>Cancelado</span>'
+            };
+            badgeEl.innerHTML = badgeMap[client.status] || client.status;
+
+            if (client.status === 'Activo') {
+                actionEl.innerHTML = `
+                    <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-emerald-900 dark:text-emerald-200">¡Estás al día con tu servicio!</h4>
+                                <p class="text-xs sm:text-sm text-emerald-700 dark:text-emerald-300">No posees facturas vencidas. Tu próximo corte es el ${client.dueDate}.</p>
+                            </div>
+                        </div>
+                        <button onclick="togglePaymentForm(true)" class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-emerald-50 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-xs font-bold transition shrink-0">
+                            Adelantar Próximo Mes
+                        </button>
+                    </div>
+                `;
+            } else if (client.status === 'Vencido') {
+                actionEl.innerHTML = `
+                    <div class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <span class="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 block mb-1">Factura Vencida - Saldo Pendiente</span>
+                            <div class="flex items-baseline gap-3">
+                                <span class="text-2xl sm:text-3xl font-extrabold text-rose-700 dark:text-rose-300">${formatUsd(amountUsd)}</span>
+                                <span class="text-rose-400 font-bold">/</span>
+                                <span class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">${formatBs(amountBs)}</span>
+                            </div>
+                            <p class="text-xs text-rose-600 dark:text-rose-400 mt-1">Reporta tu pago para reactivar tu servicio de inmediato.</p>
+                        </div>
+                        <button onclick="togglePaymentForm(true)" class="px-6 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-lg shadow-rose-500/30 transition flex items-center justify-center gap-2 shrink-0">
+                            <i class="fa-solid fa-credit-card"></i> Reportar Pago
+                        </button>
+                    </div>
+                `;
+            } else if (client.status === 'Pendiente') {
+                actionEl.innerHTML = `
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-5 flex items-center gap-4">
+                        <div class="w-11 h-11 rounded-full bg-amber-500 text-white flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-amber-900 dark:text-amber-200">Reporte de pago recibido — En validación</h4>
+                            <p class="text-xs sm:text-sm text-amber-700 dark:text-amber-300 mt-0.5">Nuestro equipo administrativo está verificando tu referencia bancaria. Una vez confirmado, tu estado cambiará automáticamente a <strong>Activo</strong>.</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                actionEl.innerHTML = `
+                    <div class="bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-2xl p-5 flex items-center justify-between gap-4">
+                        <div>
+                            <h4 class="font-bold text-slate-800 dark:text-slate-200">Servicio actualmente ${client.status}</h4>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Comunícate con atención al cliente vía WhatsApp para reactivar tu cuenta.</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Prepare Payment Form Data
+            document.getElementById('pay-amount-usd').textContent = formatUsd(amountUsd);
+            document.getElementById('pay-amount-bs').textContent = formatBs(amountBs);
+            
+            const bankSelect = document.getElementById('pay-bank-select');
+            const bankList = document.getElementById('portal-bank-list');
+            bankSelect.innerHTML = '';
+            bankList.innerHTML = '';
+
+            appState.banks.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.name;
+                opt.textContent = b.name;
+                bankSelect.appendChild(opt);
+
+                const copyPayload = `${b.name} | ${b.account} | ${b.rif} | ${b.holder}`;
+                const card = document.createElement('div');
+                card.className = 'p-3.5 rounded-xl bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 flex items-center justify-between gap-2';
+                card.innerHTML = `
+                    <div class="min-w-0">
+                        <p class="font-bold text-xs text-slate-900 dark:text-white truncate">${b.name}</p>
+                        <p class="text-xs font-mono text-primary-600 dark:text-primary-400 font-semibold truncate">${b.account}</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">${b.rif} • ${b.holder}</p>
+                    </div>
+                    <button type="button" onclick="copyTextValue('${copyPayload}', 'Datos bancarios copiados')" class="p-2.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-primary-50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 shrink-0 transition" title="Copiar datos">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                `;
+                bankList.appendChild(card);
+            });
+
+            document.getElementById('portal-result-container').classList.remove('hidden');
+        }
+
+        function togglePaymentForm(show) {
+            const card = document.getElementById('portal-payment-form-card');
+            document.getElementById('pay-error-box').classList.add('hidden');
+            if (show) {
+                card.classList.remove('hidden');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                card.classList.add('hidden');
+            }
+        }
+
+        function handlePaymentSubmit(e) {
+            e.preventDefault();
+            const errorBox = document.getElementById('pay-error-box');
+            const errorText = document.getElementById('pay-error-text');
+            errorBox.classList.add('hidden');
+
+            const client = appState.clients.find(c => c.id === activeSearchedClientId);
+            if (!client) return;
+
+            const bankName = document.getElementById('pay-bank-select').value;
+            const reference = document.getElementById('pay-reference').value.trim();
+            const payDate = document.getElementById('pay-date').value;
+            const fileInput = document.getElementById('pay-receipt-file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                errorText.textContent = 'Debes adjuntar el comprobante o captura del pago.';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            // 1. Validate Duplicate Reference
+            const cleanRef = reference.replace(/\s+/g, '').toLowerCase();
+            const isDuplicateRef = appState.payments.some(
+                p => p.status !== 'Rechazado' && p.reference.replace(/\s+/g, '').toLowerCase() === cleanRef
+            );
+
+            if (isDuplicateRef) {
+                errorText.textContent = `Error: El número de referencia "${reference}" ya fue registrado anteriormente en el sistema. No puedes reportar un pago con una referencia duplicada.`;
+                errorBox.classList.remove('hidden');
+                showToast('Referencia duplicada detectada', 'error');
+                return;
+            }
+
+            // 2. Validate Duplicate Receipt Signature (file name + size + lastModified)
+            const fileSignature = `${file.name}_${file.size}_${file.lastModified}`;
+            const isDuplicateFile = appState.payments.some(
+                p => p.status !== 'Rechazado' && p.receiptHash === fileSignature
+            );
+
+            if (isDuplicateFile) {
+                errorText.textContent = 'Error: Este archivo de comprobante ya fue utilizado en otro reporte de pago. Por favor sube un comprobante válido y único.';
+                errorBox.classList.remove('hidden');
+                showToast('Comprobante duplicado detectado', 'error');
+                return;
+            }
+
+            // Read image as Data URL for preview in admin panel
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const plan = appState.plans.find(p => p.id === client.planId) || { price: 0 };
+                const rate = Number(appState.settings.exchangeRate);
+                const amountUsd = Number(plan.price);
+                const amountBs = amountUsd * rate;
+
+                const newPayment = {
+                    id: 'pay-' + Date.now(),
+                    clientId: client.id,
+                    clientName: `${client.firstName} ${client.lastName}`,
+                    clientCedula: client.cedula,
+                    bankName,
+                    reference,
+                    amountUsd,
+                    amountBs,
+                    date: payDate,
+                    receiptDataUrl: event.target.result,
+                    receiptHash: fileSignature,
+                    status: 'Pendiente'
+                };
+
+                appState.payments.unshift(newPayment);
+                client.status = 'Pendiente';
+
+                // Reset form & refresh UI
+                e.target.reset();
+                document.getElementById('pay-date').value = todayStr;
+                togglePaymentForm(false);
+                renderPortalClientResult(client.id);
+                showToast('¡Pago reportado con éxito! Tu estado ahora está Pendiente de validación.', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // -------------------- ADMIN DASHBOARD LOGIC --------------------
+        function switchAdminTab(tabName) {
+            document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                btn.className = 'admin-tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 relative';
+            });
+
+            document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            activeBtn.className = 'admin-tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap flex items-center gap-2 bg-primary-600 text-white shadow-sm relative';
+
+            if (tabName === 'dashboard') renderDashboardMetrics();
+            if (tabName === 'clients') renderClientsTable();
+            if (tabName === 'payments') renderPaymentsValidation();
+            if (tabName === 'plans') renderPlansGrid();
+            if (tabName === 'settings') loadSettingsForm();
+        }
+
+        function refreshAdminDashboard() {
+            updatePendingBadge();
+            renderDashboardMetrics();
+            renderClientsTable();
+            renderPaymentsValidation();
+            renderPlansGrid();
+            loadSettingsForm();
+        }
+
+        function updatePendingBadge() {
+            const pendingCount = appState.payments.filter(p => p.status === 'Pendiente').length;
+            const badge = document.getElementById('pending-payments-badge');
+            if (pendingCount > 0) {
+                badge.textContent = pendingCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function handleQuickRateUpdate(e) {
+            e.preventDefault();
+            const newRate = parseFloat(document.getElementById('quick-rate-input').value);
+            if (isNaN(newRate) || newRate <= 0) {
+                showToast('Ingresa una tasa válida mayor a 0', 'error');
+                return;
+            }
+            appState.settings.exchangeRate = newRate;
+            updateGlobalBranding();
+            renderClientsTable();
+            renderPlansGrid();
+            showToast(`Tasa actualizada a 1 $ = ${newRate.toFixed(2)} Bs`, 'success');
+        }
+
+        // -------------------- TAB 1: METRICS & REVENUE --------------------
+        function renderDashboardMetrics() {
+            const confirmed = appState.payments.filter(p => p.status === 'Confirmado');
+            const now = new Date();
+            const todayIso = now.toISOString().split('T')[0];
+
+            // Start of week (Monday)
+            const startOfWeek = new Date(now);
+            const day = startOfWeek.getDay() || 7;
+            startOfWeek.setHours(0, 0, 0, 0);
+            startOfWeek.setDate(startOfWeek.getDate() - day + 1);
+
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            let dayUsd = 0, dayBs = 0;
+            let weekUsd = 0, weekBs = 0;
+            let monthUsd = 0, monthBs = 0;
+            let yearUsd = 0, yearBs = 0;
+
+            confirmed.forEach(p => {
+                const pDate = new Date(p.date + 'T12:00:00');
+                const usd = Number(p.amountUsd);
+                const bs = Number(p.amountBs);
+
+                if (p.date === todayIso) {
+                    dayUsd += usd;
+                    dayBs += bs;
+                }
+                if (pDate >= startOfWeek) {
+                    weekUsd += usd;
+                    weekBs += bs;
+                }
+                if (pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear) {
+                    monthUsd += usd;
+                    monthBs += bs;
+                }
+                if (pDate.getFullYear() === currentYear) {
+                    yearUsd += usd;
+                    yearBs += bs;
+                }
+            });
+
+            document.getElementById('rev-day-usd').textContent = formatUsd(dayUsd);
+            document.getElementById('rev-day-bs').textContent = formatBs(dayBs);
+            document.getElementById('rev-week-usd').textContent = formatUsd(weekUsd);
+            document.getElementById('rev-week-bs').textContent = formatBs(weekBs);
+            document.getElementById('rev-month-usd').textContent = formatUsd(monthUsd);
+            document.getElementById('rev-month-bs').textContent = formatBs(monthBs);
+            document.getElementById('rev-year-usd').textContent = formatUsd(yearUsd);
+            document.getElementById('rev-year-bs').textContent = formatBs(yearBs);
+
+            // Client Counts
+            document.getElementById('stat-active').textContent = appState.clients.filter(c => c.status === 'Activo').length;
+            document.getElementById('stat-expired').textContent = appState.clients.filter(c => c.status === 'Vencido').length;
+            document.getElementById('stat-pending').textContent = appState.clients.filter(c => c.status === 'Pendiente').length;
+            document.getElementById('stat-paused').textContent = appState.clients.filter(c => c.status === 'Pausado').length;
+            document.getElementById('stat-cancelled').textContent = appState.clients.filter(c => c.status === 'Cancelado').length;
+
+            // Recent Income Table
+            const tbody = document.getElementById('recent-income-table');
+            tbody.innerHTML = '';
+            if (confirmed.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">No hay ingresos confirmados aún.</td></tr>';
+                return;
+            }
+            confirmed.slice(0, 10).forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-3 px-3 text-slate-500 dark:text-slate-400">${p.date}</td>
+                    <td class="py-3 px-3 font-semibold text-slate-900 dark:text-white">${p.clientName} <span class="text-xs text-slate-400 font-normal">(${p.clientCedula})</span></td>
+                    <td class="py-3 px-3 font-mono text-xs">${p.reference}</td>
+                    <td class="py-3 px-3 text-xs">${p.bankName}</td>
+                    <td class="py-3 px-3 text-right font-bold text-emerald-600 dark:text-emerald-400">${formatUsd(p.amountUsd)}</td>
+                    <td class="py-3 px-3 text-right text-slate-600 dark:text-slate-300">${formatBs(p.amountBs)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // -------------------- TAB 2: CLIENTS MANAGEMENT --------------------
+        function renderClientsTable() {
+            const search = document.getElementById('client-filter-search').value.toLowerCase();
+            const statusFilter = document.getElementById('client-filter-status').value;
+            const tbody = document.getElementById('clients-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = appState.clients.filter(c => {
+                const fullName = `${c.firstName} ${c.lastName}`.toLowerCase();
+                const matchesSearch = fullName.includes(search) || c.cedula.toLowerCase().includes(search) || c.phone.includes(search);
+                const matchesStatus = statusFilter === 'ALL' || c.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-400">No se encontraron clientes con los filtros actuales.</td></tr>';
+                return;
+            }
+
+            const statusColors = {
+                'Activo': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+                'Vencido': 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
+                'Pendiente': 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+                'Pausado': 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
+                'Cancelado': 'bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400'
+            };
+
+            filtered.forEach(c => {
+                const plan = appState.plans.find(p => p.id === c.planId) || { name: 'Sin Plan', price: 0 };
+                const amountBs = Number(plan.price) * Number(appState.settings.exchangeRate);
+                const cleanPhone = c.phone.replace(/\D/g, '');
+                const portalUrl = getPortalShareUrl();
+                
+                // WhatsApp Payment Reminder Link including Portal URL
+                const reminderText = encodeURIComponent(
+                    `Hola *${c.firstName} ${c.lastName}*, te saludamos de *${appState.settings.companyName}*. ` +
+                    `Te recordamos que tu factura del *${plan.name}* tiene fecha de vencimiento *${c.dueDate}*. ` +
+                    `Monto a cancelar: *${formatUsd(plan.price)}* (${formatBs(amountBs)} a tasa ${appState.settings.exchangeRate} Bs/$). ` +
+                    `Consulta tu estado y reporta tu pago ingresando tu cédula (*${c.cedula}*) en nuestro portal: ${portalUrl}`
+                );
+                const waUrl = `https://wa.me/${cleanPhone}?text=${reminderText}`;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition';
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4">
+                        <div class="font-bold text-slate-900 dark:text-white">${c.firstName} ${c.lastName}</div>
+                        <div class="text-xs font-mono text-slate-500">C.I: ${c.cedula}</div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <div class="text-xs font-medium text-slate-700 dark:text-slate-300"><i class="fa-solid fa-phone text-[10px] mr-1 text-slate-400"></i>${c.phone}</div>
+                        <div class="text-xs text-slate-400 truncate max-w-[200px]" title="${c.address}">${c.address}</div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <div class="font-semibold text-xs text-primary-600 dark:text-primary-400">${plan.name}</div>
+                        <div class="text-xs font-bold text-slate-800 dark:text-slate-200">${formatUsd(plan.price)} <span class="font-normal text-slate-400">(${formatBs(amountBs)})</span></div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-lg">${c.dueDate}</span>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[c.status] || ''}">${c.status}</span>
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                        <div class="inline-flex items-center gap-1.5">
+                            <a href="${waUrl}" target="_blank" rel="noopener noreferrer" title="Enviar Recordatorio de Pago por WhatsApp" class="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 transition">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                            <button onclick="openClientModal('${c.id}')" title="Editar Cliente / Factura" class="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 transition">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="deleteClient('${c.id}')" title="Eliminar Cliente" class="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function generateMonthlyCycle() {
+            let updatedCount = 0;
+            appState.clients.forEach(c => {
+                if (c.status === 'Activo' && c.dueDate < todayStr) {
+                    c.status = 'Vencido';
+                    updatedCount++;
+                }
+            });
+            renderClientsTable();
+            renderDashboardMetrics();
+            if (updatedCount > 0) {
+                showToast(`Se actualizaron ${updatedCount} clientes con factura vencida.`, 'warning');
+            } else {
+                showToast('Todos los clientes activos están dentro de su fecha vigente.', 'info');
+            }
+        }
+
+        function openClientModal(clientId = null) {
+            const planSelect = document.getElementById('client-plan');
+            planSelect.innerHTML = '';
+            appState.plans.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.name} (${formatUsd(p.price)})`;
+                planSelect.appendChild(opt);
+            });
+
+            if (clientId) {
+                const c = appState.clients.find(item => item.id === clientId);
+                document.getElementById('client-modal-title').textContent = 'Editar Cliente y Facturación';
+                document.getElementById('client-id').value = c.id;
+                document.getElementById('client-first-name').value = c.firstName;
+                document.getElementById('client-last-name').value = c.lastName;
+                document.getElementById('client-cedula').value = c.cedula;
+                document.getElementById('client-phone').value = c.phone;
+                document.getElementById('client-email').value = c.email || '';
+                document.getElementById('client-address').value = c.address;
+                document.getElementById('client-plan').value = c.planId;
+                document.getElementById('client-status').value = c.status;
+                document.getElementById('client-due-date').value = c.dueDate;
+            } else {
+                document.getElementById('client-modal-title').textContent = 'Agregar Nuevo Cliente';
+                document.getElementById('client-id').value = '';
+                document.getElementById('client-first-name').value = '';
+                document.getElementById('client-last-name').value = '';
+                document.getElementById('client-cedula').value = '';
+                document.getElementById('client-phone').value = '';
+                document.getElementById('client-email').value = '';
+                document.getElementById('client-address').value = '';
+                document.getElementById('client-status').value = 'Activo';
+                document.getElementById('client-due-date').value = getDefaultCycleDate(0);
+            }
+            openModal('client-modal');
+        }
+
+        function handleSaveClient(e) {
+            e.preventDefault();
+            const id = document.getElementById('client-id').value;
+            const cedula = document.getElementById('client-cedula').value.trim();
+
+            // Check duplicate cedula
+            const duplicate = appState.clients.find(c => c.cedula.toLowerCase() === cedula.toLowerCase() && c.id !== id);
+            if (duplicate) {
+                showToast('Ya existe otro cliente registrado con esa cédula.', 'error');
+                return;
+            }
+
+            const clientData = {
+                firstName: document.getElementById('client-first-name').value.trim(),
+                lastName: document.getElementById('client-last-name').value.trim(),
+                cedula,
+                phone: document.getElementById('client-phone').value.trim(),
+                email: document.getElementById('client-email').value.trim(),
+                address: document.getElementById('client-address').value.trim(),
+                planId: document.getElementById('client-plan').value,
+                status: document.getElementById('client-status').value,
+                dueDate: document.getElementById('client-due-date').value
+            };
+
+            if (id) {
+                const index = appState.clients.findIndex(c => c.id === id);
+                appState.clients[index] = { ...appState.clients[index], ...clientData };
+                showToast('Datos del cliente actualizados', 'success');
+            } else {
+                appState.clients.unshift({ id: 'cli-' + Date.now(), ...clientData });
+                showToast('Cliente registrado correctamente', 'success');
+            }
+
+            closeModal('client-modal');
+            renderClientsTable();
+            renderDashboardMetrics();
+        }
+
+        function deleteClient(clientId) {
+            showConfirmModal(
+                'Eliminar Cliente',
+                '¿Estás seguro de eliminar este cliente del sistema? Esta acción no se puede deshacer.',
+                () => {
+                    appState.clients = appState.clients.filter(c => c.id !== clientId);
+                    renderClientsTable();
+                    renderDashboardMetrics();
+                    showToast('Cliente eliminado', 'info');
+                },
+                true
+            );
+        }
+
+        // -------------------- TAB 3: PAYMENT VALIDATION --------------------
+        function renderPaymentsValidation() {
+            const container = document.getElementById('payments-validation-list');
+            container.innerHTML = '';
+
+            if (appState.payments.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-sm col-span-2 py-8 text-center">No hay reportes de pago registrados.</p>';
+                return;
+            }
+
+            appState.payments.forEach(p => {
+                const isPending = p.status === 'Pendiente';
+                const isConfirmed = p.status === 'Confirmado';
+                
+                const badgeClass = isPending 
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' 
+                    : (isConfirmed ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700');
+
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-2xl border transition ${isPending ? 'bg-amber-50/30 dark:bg-amber-900/10 border-amber-300 dark:border-amber-700 shadow-sm' : 'bg-slate-50 dark:bg-slate-700/40 border-slate-200 dark:border-slate-700'}`;
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2 mb-3">
+                        <div>
+                            <h4 class="font-bold text-slate-900 dark:text-white">${p.clientName}</h4>
+                            <span class="text-xs text-slate-500">C.I: ${p.clientCedula} • Fecha: ${p.date}</span>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${p.status}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 mb-4">
+                        <div>
+                            <span class="text-slate-400 block">Banco / Método</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200">${p.bankName}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Referencia</span>
+                            <span class="font-mono font-bold text-primary-600 dark:text-primary-400">${p.reference}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Monto USD</span>
+                            <span class="font-bold text-slate-900 dark:text-white">${formatUsd(p.amountUsd)}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Monto Bs</span>
+                            <span class="font-bold text-emerald-600 dark:text-emerald-400">${formatBs(p.amountBs)}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <button onclick="viewReceiptModal('${p.id}')" class="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-image"></i> Ver Comprobante
+                        </button>
+                        ${isPending ? `
+                            <div class="flex items-center gap-2">
+                                <button onclick="rejectPayment('${p.id}')" class="px-3.5 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 text-xs font-bold transition">
+                                    Rechazar
+                                </button>
+                                <button onclick="confirmPayment('${p.id}')" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check"></i> Confirmar Pago
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function viewReceiptModal(paymentId) {
+            const p = appState.payments.find(item => item.id === paymentId);
+            if (!p) return;
+            document.getElementById('receipt-preview-img').src = p.receiptDataUrl;
+            document.getElementById('receipt-preview-info').textContent = `Cliente: ${p.clientName} | Ref: ${p.reference}`;
+            openModal('receipt-modal');
+        }
+
+        function confirmPayment(paymentId) {
+            showConfirmModal(
+                'Confirmar y Validar Pago',
+                'Al confirmar este pago, se sumará a tus ingresos y el cliente pasará automáticamente a estado ACTIVO con su próximo vencimiento actualizado.',
+                () => {
+                    const payment = appState.payments.find(p => p.id === paymentId);
+                    if (!payment) return;
+                    payment.status = 'Confirmado';
+
+                    // Automatically update client to Activo & extend due date to next month's cycle (28th)
+                    const client = appState.clients.find(c => c.id === payment.clientId);
+                    if (client) {
+                        client.status = 'Activo';
+                        const currentDue = new Date(client.dueDate + 'T12:00:00');
+                        const baseDate = currentDue < new Date() ? new Date() : currentDue;
+                        baseDate.setMonth(baseDate.getMonth() + 1);
+                        baseDate.setDate(28); // Maintain 25-30 cycle
+                        client.dueDate = baseDate.toISOString().split('T')[0];
+                    }
+
+                    updatePendingBadge();
+                    renderPaymentsValidation();
+                    renderDashboardMetrics();
+                    renderClientsTable();
+                    showToast('Pago confirmado. El cliente ahora está Activo.', 'success');
+                }
+            );
+        }
+
+        function rejectPayment(paymentId) {
+            showConfirmModal(
+                'Rechazar Reporte de Pago',
+                '¿Deseas rechazar este pago? El cliente volverá a estado Vencido.',
+                () => {
+                    const payment = appState.payments.find(p => p.id === paymentId);
+                    if (!payment) return;
+                    payment.status = 'Rechazado';
+
+                    const client = appState.clients.find(c => c.id === payment.clientId);
+                    if (client) {
+                        client.status = 'Vencido';
+                    }
+
+                    updatePendingBadge();
+                    renderPaymentsValidation();
+                    renderClientsTable();
+                    showToast('Reporte de pago rechazado.', 'warning');
+                },
+                true
+            );
+        }
+
+        // -------------------- TAB 4: PLANS MANAGEMENT --------------------
+        function renderPlansGrid() {
+            const grid = document.getElementById('plans-grid');
+            grid.innerHTML = '';
+            const rate = Number(appState.settings.exchangeRate);
+
+            appState.plans.forEach(p => {
+                const bsPrice = Number(p.price) * rate;
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <h4 class="font-bold text-base text-slate-900 dark:text-white">${p.name}</h4>
+                            <div class="flex gap-1">
+                                <button onclick="openPlanModal('${p.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-primary-600 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="deletePlan('${p.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fa-solid fa-trash text-xs"></i></button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">${p.desc}</p>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex items-baseline justify-between">
+                        <span class="text-2xl font-extrabold text-primary-600 dark:text-primary-400">${formatUsd(p.price)}<span class="text-xs font-normal text-slate-400">/mes</span></span>
+                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">${formatBs(bsPrice)}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openPlanModal(planId = null) {
+            if (planId) {
+                const p = appState.plans.find(item => item.id === planId);
+                document.getElementById('plan-modal-title').textContent = 'Editar Plan';
+                document.getElementById('plan-id').value = p.id;
+                document.getElementById('plan-name').value = p.name;
+                document.getElementById('plan-desc').value = p.desc;
+                document.getElementById('plan-price').value = p.price;
+            } else {
+                document.getElementById('plan-modal-title').textContent = 'Crear Nuevo Plan';
+                document.getElementById('plan-id').value = '';
+                document.getElementById('plan-name').value = '';
+                document.getElementById('plan-desc').value = '';
+                document.getElementById('plan-price').value = '';
+            }
+            openModal('plan-modal');
+        }
+
+        function handleSavePlan(e) {
+            e.preventDefault();
+            const id = document.getElementById('plan-id').value;
+            const planData = {
+                name: document.getElementById('plan-name').value.trim(),
+                desc: document.getElementById('plan-desc').value.trim(),
+                price: parseFloat(document.getElementById('plan-price').value)
+            };
+
+            if (id) {
+                const idx = appState.plans.findIndex(p => p.id === id);
+                appState.plans[idx] = { ...appState.plans[idx], ...planData };
+                showToast('Plan actualizado correctamente', 'success');
+            } else {
+                appState.plans.push({ id: 'plan-' + Date.now(), ...planData });
+                showToast('Nuevo plan agregado', 'success');
+            }
+
+            closeModal('plan-modal');
+            renderPlansGrid();
+            renderClientsTable();
+        }
+
+        function deletePlan(planId) {
+            if (appState.plans.length <= 1) {
+                showToast('Debe existir al menos un plan activo en el sistema.', 'error');
+                return;
+            }
+            showConfirmModal(
+                'Eliminar Plan',
+                '¿Estás seguro de eliminar este plan?',
+                () => {
+                    appState.plans = appState.plans.filter(p => p.id !== planId);
+                    renderPlansGrid();
+                    showToast('Plan eliminado', 'info');
+                },
+                true
+            );
+        }
+
+        // -------------------- TAB 5: SETTINGS & BANKS --------------------
+        function loadSettingsForm() {
+            const s = appState.settings;
+            document.getElementById('set-company-name').value = s.companyName;
+            document.getElementById('set-logo-url').value = s.logoUrl;
+            document.getElementById('set-exchange-rate').value = s.exchangeRate;
+            document.getElementById('set-whatsapp-phone').value = s.whatsappPhone;
+            document.getElementById('set-primary-color').value = s.primaryColor || '#2563eb';
+            document.getElementById('set-admin-user').value = s.adminUser;
+            document.getElementById('set-admin-pass').value = s.adminPass;
+            renderAdminBanksList();
+        }
+
+        function handleLogoFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                document.getElementById('set-logo-url').value = ev.target.result;
+                showToast('Imagen de logo cargada. Haz clic en "Guardar Todos los Ajustes".', 'info');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            const phoneClean = document.getElementById('set-whatsapp-phone').value.trim();
+            const selectedColor = document.getElementById('set-primary-color').value;
+
+            appState.settings.companyName = document.getElementById('set-company-name').value.trim();
+            appState.settings.logoUrl = document.getElementById('set-logo-url').value.trim() || 'https://placehold.co/100x100/2563eb/ffffff?text=ISP';
+            appState.settings.exchangeRate = parseFloat(document.getElementById('set-exchange-rate').value);
+            appState.settings.whatsappPhone = phoneClean;
+            appState.settings.primaryColor = selectedColor;
+            appState.settings.adminUser = document.getElementById('set-admin-user').value.trim();
+            appState.settings.adminPass = document.getElementById('set-admin-pass').value;
+
+            updateGlobalBranding();
+            renderPortalSupportButtons();
+            renderClientsTable();
+            renderPlansGrid();
+            showToast('Ajustes del sistema guardados correctamente', 'success');
+        }
+
+        function renderAdminBanksList() {
+            const list = document.getElementById('admin-banks-list');
+            list.innerHTML = '';
+
+            if (appState.banks.length === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-400 py-4 text-center">No hay cuentas bancarias registradas.</p>';
+                return;
+            }
+
+            appState.banks.forEach(b => {
+                const div = document.createElement('div');
+                div.className = 'p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 flex items-center justify-between gap-3';
+                div.innerHTML = `
+                    <div>
+                        <h5 class="font-bold text-sm text-slate-900 dark:text-white">${b.name}</h5>
+                        <p class="text-xs font-mono text-primary-600 dark:text-primary-400 font-semibold">${b.account}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">${b.holder} • ${b.rif}</p>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="openBankModal('${b.id}')" class="p-2 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary-600 border border-slate-200 dark:border-slate-600"><i class="fa-solid fa-pen text-xs"></i></button>
+                        <button onclick="deleteBank('${b.id}')" class="p-2 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-rose-600 border border-slate-200 dark:border-slate-600"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function openBankModal(bankId = null) {
+            if (bankId) {
+                const b = appState.banks.find(item => item.id === bankId);
+                document.getElementById('bank-modal-title').textContent = 'Editar Cuenta Bancaria';
+                document.getElementById('bank-id').value = b.id;
+                document.getElementById('bank-name').value = b.name;
+                document.getElementById('bank-account').value = b.account;
+                document.getElementById('bank-holder').value = b.holder;
+                document.getElementById('bank-rif').value = b.rif;
+            } else {
+                document.getElementById('bank-modal-title').textContent = 'Agregar Cuenta Bancaria';
+                document.getElementById('bank-id').value = '';
+                document.getElementById('bank-name').value = '';
+                document.getElementById('bank-account').value = '';
+                document.getElementById('bank-holder').value = '';
+                document.getElementById('bank-rif').value = '';
+            }
+            openModal('bank-modal');
+        }
+
+        function handleSaveBank(e) {
+            e.preventDefault();
+            const id = document.getElementById('bank-id').value;
+            const bankData = {
+                name: document.getElementById('bank-name').value.trim(),
+                account: document.getElementById('bank-account').value.trim(),
+                holder: document.getElementById('bank-holder').value.trim(),
+                rif: document.getElementById('bank-rif').value.trim()
+            };
+
+            if (id) {
+                const idx = appState.banks.findIndex(b => b.id === id);
+                appState.banks[idx] = { ...appState.banks[idx], ...bankData };
+                showToast('Datos bancarios actualizados', 'success');
+            } else {
+                appState.banks.push({ id: 'bank-' + Date.now(), ...bankData });
+                showToast('Cuenta bancaria agregada', 'success');
+            }
+
+            closeModal('bank-modal');
+            renderAdminBanksList();
+        }
+
+        function deleteBank(bankId) {
+            showConfirmModal(
+                'Eliminar Cuenta Bancaria',
+                '¿Estás seguro de eliminar esta cuenta bancaria?',
+                () => {
+                    appState.banks = appState.banks.filter(b => b.id !== bankId);
+                    renderAdminBanksList();
+                    showToast('Cuenta bancaria eliminada', 'info');
+                },
+                true
+            );
+        }
+    </script>
+</body>
+</html>
